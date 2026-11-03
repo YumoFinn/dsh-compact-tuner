@@ -1,0 +1,61 @@
+{
+  "format": 1,
+  "title": {
+    "en": "YumoFinn's DSH plugins",
+    "zh": "YumoFinn 的 DSH 插件"
+  },
+  "description": {
+    "en": "Plugins maintained by YumoFinn.",
+    "zh": "YumoFinn 维护的 DSH 插件。"
+  },
+  "metadata": {
+    "categories": {
+      "context": {
+        "title": {
+          "en": "Context",
+          "zh": "上下文"
+        }
+      }
+    }
+  },
+  "plugins": [
+    {
+      "name": "dsh-compact-tuner",
+      "title": {
+        "en": "Compact Tuner",
+        "zh": "压缩调节器"
+      },
+      "description": {
+        "en": "Adjust the compaction trigger ratio and the retained tail per conversation, from the composer.",
+        "zh": "在输入框上方调当前对话的压缩触发比例与保留量。"
+      },
+      "author": "YumoFinn",
+      "homepage": "https://github.com/YumoFinn/dsh-compact-tuner#readme",
+      "repository": {
+        "url": "https://github.com/YumoFinn/dsh-compact-tuner"
+      },
+      "metadata": {
+        "category": "context",
+        "keywords": [
+          "compaction",
+          "context",
+          "threshold",
+          "retain-tokens",
+          "compaction-threshold"
+        ]
+      },
+      "versions": [
+        {
+          "version": "0.1.0",
+          "publishTimestamp": 1793707087,
+          "source": {
+            "type": "npm"
+          },
+          "engines": {
+            "dsh": ">=0.2.1-rc.3 <0.3.0"
+          }
+        }
+      ]
+    }
+  ]
+}
