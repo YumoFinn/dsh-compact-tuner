@@ -1,0 +1,8 @@
+# dsh-compact-tuner — 输入框上方的压缩面板（host 半侧）
+#
+# bundle patch 只能插入根层。preset 用 `isolate: { compaction: true }` 时，
+# 还需要在你的 preset 的 compaction group 里加一条 role: engine 的条目，
+# 见 README 的「preset 隔离时补一行」。
+- insert:
+    - id: dsh-compact-tuner
+      name: 'dsh-compact-tuner'

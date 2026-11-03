@@ -1,0 +1,62 @@
+{
+  "name": "dsh-compact-tuner",
+  "version": "0.1.0",
+  "description": "Tune the DeepSeek Harness compaction trigger ratio and retained tail per conversation, from the composer.",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "cordis",
+    "compaction",
+    "context",
+    "compaction-threshold",
+    "retain-tokens"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/QLY-3315/dsh-compact-tuner.git"
+  },
+  "homepage": "https://github.com/QLY-3315/dsh-compact-tuner#readme",
+  "bugs": {
+    "url": "https://github.com/QLY-3315/dsh-compact-tuner/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22",
+    "dsh": ">=0.2.1-rc.3 <0.3.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-slots"
+      ]
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-compaction": "^0.2.1-rc.3",
+    "react": "^18.2.0"
+  }
+}
