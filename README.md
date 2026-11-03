@@ -1,5 +1,7 @@
 # dsh-compact-tuner
 
+![压缩面板](https://raw.githubusercontent.com/YumoFinn/dsh-compact-tuner/main/docs/panel.png)
+
 在输入框上方调当前对话的上下文压缩参数：**触发比例**和**保留量**。
 
 ## 为什么需要它
