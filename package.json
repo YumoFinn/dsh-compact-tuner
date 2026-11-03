@@ -30,11 +30,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/QLY-3315/dsh-compact-tuner.git"
+    "url": "git+https://github.com/YumoFinn/dsh-compact-tuner.git"
   },
-  "homepage": "https://github.com/QLY-3315/dsh-compact-tuner#readme",
+  "homepage": "https://github.com/YumoFinn/dsh-compact-tuner#readme",
   "bugs": {
-    "url": "https://github.com/QLY-3315/dsh-compact-tuner/issues"
+    "url": "https://github.com/YumoFinn/dsh-compact-tuner/issues"
   },
   "publishConfig": {
     "access": "public"
