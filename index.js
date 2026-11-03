@@ -145,21 +145,26 @@ export function apply(ctx, config) {
 
   report(ctx, { step: 'apply', role })
 
-  if (role !== 'host') ctx.inject(['compaction'], (scope) => {
-    const engine = scope.compaction
-    if (engine === undefined || typeof engine.compactIfNeeded !== 'function') {
-      report(ctx, { step: 'engine', ok: false, error: 'no compactIfNeeded' })
-      return
-    }
-    state.engine = engine
-    const original = engine.compactIfNeeded
+  /** Engines already wrapped, so a preset switch never double-wraps one instance. */
+  const wrapped = new WeakSet()
+  /** Original `compactIfNeeded` per wrapped engine, restored when a seat disposes. */
+  const originals = new WeakMap()
 
-    /**
-     * The backend resolves its target policy synchronously before the first
-     * `await`, so the derived config only has to hold for the synchronous prefix
-     * of the call — no other task can observe the swap.
-     */
-    const decorated = function compactIfNeeded(agent, trigger, signal) {
+  /**
+   * Wrap one compaction engine. The backend resolves its target policy
+   * synchronously before the first `await`, so the derived config only has to
+   * hold for the synchronous prefix of the call — no other task can observe
+   * the swap.
+   */
+  const wrap = (engine) => {
+    if (engine === undefined || typeof engine.compactIfNeeded !== 'function') return undefined
+    if (wrapped.has(engine)) return engine
+    wrapped.add(engine)
+    if (state.engine === undefined) state.engine = engine
+    const original = engine.compactIfNeeded
+    originals.set(engine, original)
+
+    engine.compactIfNeeded = function compactIfNeeded(agent, trigger, signal) {
       const sessionId = agent?.session?.id
       if (typeof sessionId === 'string') markSeen(sessionId, engine.config?.thresholdRatio, engine.config?.retainTokens)
       if (trigger !== 'pressure') return original.call(engine, agent, trigger, signal)
@@ -201,13 +206,23 @@ export function apply(ctx, config) {
         }
       })
     }
+    return engine
+  }
 
+  const restore = (engine) => {
+    const original = originals.get(engine)
+    if (original !== undefined && engine.compactIfNeeded !== original) engine.compactIfNeeded = original
+  }
+
+  if (role !== 'host') ctx.inject(['compaction'], (scope) => {
+    const engine = wrap(scope.compaction)
+    if (engine === undefined) {
+      report(ctx, { step: 'engine', ok: false, error: 'no compactIfNeeded' })
+      return
+    }
     scope.effect(function* () {
-      engine.compactIfNeeded = decorated
-      yield () => {
-        if (engine.compactIfNeeded === decorated) engine.compactIfNeeded = original
-      }
-    }, 'compact-ratio engine')
+      yield () => restore(engine)
+    }, 'compact-tuner engine')
     report(ctx, { step: 'engine', ok: true })
   })
 
@@ -227,6 +242,23 @@ export function apply(ctx, config) {
       registerRoutes(scope, state)
     })
   }
+
+  /**
+   * Presets that isolate `compaction` run their own engine instance, which the
+   * root seat above cannot reach. Resolve each agent's engine on its first step
+   * and wrap that instance too, so no preset needs a hand-written engine seat.
+   */
+  if (role !== 'host') ctx.on('agent/pre-step', ({ agent }, next) => {
+    try {
+      const presets = ctx.get('agentPresets')
+      if (presets !== undefined && typeof presets.serviceFor === 'function') {
+        wrap(presets.serviceFor(agent, 'compaction'))
+      }
+    } catch (error) {
+      report(ctx, { step: 'preset-engine', ok: false, error: String(error?.message ?? error) })
+    }
+    return next()
+  })
 }
 
 /** Best-effort activation record, so a silent failure is diagnosable later. */

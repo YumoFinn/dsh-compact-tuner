@@ -1,6 +1,6 @@
 {
   "name": "dsh-compact-tuner",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Tune the DeepSeek Harness compaction trigger ratio and retained tail per conversation, from the composer.",
   "keywords": [
     "dsh",

@@ -28,19 +28,8 @@ dsh plugin --profile desktop add dsh-compact-tuner
 
 重启 DSH。也可以从侧栏「插件」页搜索安装。
 
-### preset 隔离时补一行
-
-DSH 0.2 的 preset 常用 `isolate: { compaction: true }` 给每个 preset 独立引擎，
-bundle patch 只能插根层。在自己的 preset 的 compaction group 里加：
-
-```yaml
-- id: compact-tuner-engine
-  name: dsh-compact-tuner
-  config:
-    role: engine
-```
-
-根层那条（面板、命令、HTTP 接口）由插件自带。不加这一行，面板显示「未启用」。
+不需要改 preset。preset 用 `isolate: { compaction: true }` 时每个 preset 有自己的压缩引擎，
+插件会在每个 agent 的第一步把它取出来一并装饰，所以开箱即用。
 
 ## 用法
 
@@ -63,8 +52,11 @@ bundle patch 只能插根层。在自己的 preset 的 compaction group 里加�
 
 ## 实现
 
-装饰 `ctx.compaction` 的 `compactIfNeeded`：调用前换入带覆盖的配置副本，在引擎的同步前缀
-结束后还原。没有覆盖、不是压力触发、或引擎不可用时，直接调用原方法。
+装饰压缩引擎的 `compactIfNeeded`：调用前换入带覆盖的配置副本，在引擎的同步前缀结束后还原。
+没有覆盖、不是压力触发、或引擎不可用时，直接调用原方法。
+
+根层的 `ctx.compaction` 直接装饰；preset 隔离出来的引擎在 `agent/pre-step` 里通过
+`agentPresets.serviceFor(agent, 'compaction')` 取得，按实例去重，切 preset 也不会重复包装。
 
 ## 已知行为
 
