@@ -1,55 +1,81 @@
-﻿# dsh-compact-tuner
+# dsh-compact-tuner
 
-![鍘嬬缉闈㈡澘](https://raw.githubusercontent.com/YumoFinn/dsh-compact-tuner/main/docs/screenshot.png)
+![压缩面板](https://raw.githubusercontent.com/YumoFinn/dsh-compact-tuner/main/docs/screenshot.png)
 
-鍦ㄨ緭鍏ユ涓婃柟璋冨綋鍓嶅璇濈殑涓婁笅鏂囧帇缂╁弬鏁帮細**瑙﹀彂姣斾緥**鍜?*淇濈暀閲?*銆?
-## 涓轰粈涔堥渶瑕佸畠
+在输入框上方调当前对话的上下文压缩参数：**触发比例**和**保留量**。
 
-DSH 鐨勮嚜鍔ㄥ帇缂╃敱 `@deepseek-ai/dsh-compaction-basic` 椹卞姩锛屼袱涓弬鏁板彧瀛樺湪浜?preset 閰嶇疆閲岋細
+## 为什么需要它
 
-- `thresholdRatio`锛歚thresholdTokens = min(绐楀彛 脳 姣斾緥, 绐楀彛 鈭?杈撳嚭棰勭暀 鈭?headroom)`锛?  娴嬪緱鐨?`totalTokens` 瓒婅繃瀹冨氨鍘嬬缉锛?- `retainTokens`锛氬帇缂╂椂鍘熸牱淇濈暀鐨勫熬閮?token 棰勭畻銆俙resolveCompactSpec` 瑕佹眰瀹冧弗鏍煎皬浜庨槇鍊硷紝
-  鍚﹀垯鐩存帴鎶涢敊銆?
-涓よ€呴兘鏄叏灞€鐨勶細鏀逛竴娆¤閲嶅惎锛屼笖瀵规墍鏈夊璇濅竴瑙嗗悓浠併€備絾闀夸换鍔″拰鐭棶绛旈渶瑕佺殑绛栫暐涓嶅悓鈥斺€?鏈夌殑鎯虫櫄鐐瑰帇銆佷繚浣忓崟杞畬鏁存€э紝鏈夌殑鎯虫棭鐐瑰帇銆佺渷绐楀彛锛涘帇缂╁悗淇濈暀澶氬皯灏鹃儴锛屽喅瀹氭帴涓嬫潵鍑犳
-杩樿涓嶈寰椾笂涓嬫枃銆?
-鐜版湁鎻掍欢閲岋紝`dsh-compaction-threshold` 鍜?`dsh-compact-control` 鍙皟闃堝€硷紱
-`@tivility/dsh-compaction-window` 瑕嗙洊闃堝€煎拰淇濈暀閲忥紝浣嗗畠鏇挎崲 `compaction` 鍚庣銆?瑕佹眰鏀?preset 閲岀殑鍘嬬缉琛岋紝涔熸病鏈夌晫闈€傝繖涓彃浠惰ˉ鐨勬槸锛氫袱涓弬鏁伴兘鑳借皟銆佸湪浼氳瘽閲岀洿鎺ヨ皟銆?涓嶆崲鍚庣銆?
-## 瀹夎
+DSH 的自动压缩由 `@deepseek-ai/dsh-compaction-basic` 驱动，两个参数只存在于 preset 配置里：
+
+- `thresholdRatio`：`thresholdTokens = min(窗口 × 比例, 窗口 − 输出预留 − headroom)`，
+  测得的 `totalTokens` 越过它就压缩；
+- `retainTokens`：压缩时原样保留的尾部 token 预算。`resolveCompactSpec` 要求它严格小于阈值，
+  否则直接抛错。
+
+两者都是全局的：改一次要重启，且对所有对话一视同仁。但长任务和短问答需要的策略不同——
+有的想晚点压、保住单轮完整性，有的想早点压、省窗口；压缩后保留多少尾部，决定接下来几步
+还记不记得上下文。
+
+现有插件里，`dsh-compaction-threshold` 和 `dsh-compact-control` 只调阈值；
+`@tivility/dsh-compaction-window` 覆盖阈值和保留量，但它替换 `compaction` 后端、
+要求改 preset 里的压缩行，也没有界面。这个插件补的是：两个参数都能调、在会话里直接调、
+不换后端。
+
+## 安装
 
 ```powershell
 dsh plugin --profile desktop add dsh-compact-tuner
 ```
 
-閲嶅惎 DSH銆備篃鍙互浠庝晶鏍忋€屾彃浠躲€嶉〉鎼滅储瀹夎銆?
-涓嶉渶瑕佹敼 preset銆俻reset 鐢?`isolate: { compaction: true }` 鏃舵瘡涓?preset 鏈夎嚜宸辩殑鍘嬬缉寮曟搸锛?鎻掍欢浼氬湪姣忎釜 agent 鐨勭涓€姝ユ妸瀹冨彇鍑烘潵涓€骞惰楗帮紝鎵€浠ュ紑绠卞嵆鐢ㄣ€?
-## 鐢ㄦ硶
+重启 DSH。也可以从侧栏「插件」页搜索安装。
 
-鐐硅緭鍏ユ涓婃柟鐨勩€屽帇缂?xx%銆嶏紝闈㈡澘涓や釜椤电锛?
-| 椤电 | 鍙栧€?| 瀵瑰簲閰嶇疆 |
+不需要改 preset。preset 用 `isolate: { compaction: true }` 时每个 preset 有自己的压缩引擎，
+插件会在每个 agent 的第一步把它取出来一并装饰，所以开箱即用。
+
+## 用法
+
+点输入框上方的「压缩 xx%」，面板两个页签：
+
+| 页签 | 取值 | 对应配置 |
 |---|---|---|
-| 瑙﹀彂姣斾緥 | 20% / 25% / 35% / 鑷畾涔?5%鈥?5% / 璺熼殢榛樿 | `thresholdRatio` |
-| 淇濈暀閲?| 8k / 20k / 40k / 鑷畾涔?1k鈥?00k token / 璺熼殢榛樿 | `retainTokens` |
+| 触发比例 | 20% / 25% / 35% / 自定义 5%–95% / 跟随默认 | `thresholdRatio` |
+| 保留量 | 8k / 20k / 40k / 自定义 1k–200k token / 跟随默认 | `retainTokens` |
 
-鏀瑰姩鍙奖鍝嶅綋鍓嶅璇濓紝涓嬩竴姝ョ敓鏁堬紱鏂板璇濆洖鍒伴粯璁ゅ€笺€?
-鍛戒护锛?
+改动只影响当前对话，下一步生效；新对话回到默认值。
+
+命令：
+
 ```
-/compact-ratio            鏌ョ湅褰撳墠瀵硅瘽鐨勬瘮渚?/compact-ratio 0.25       璁句负 25%
-/compact-ratio default    娓呴櫎瑕嗙洊
+/compact-ratio            查看当前对话的比例
+/compact-ratio 0.25       设为 25%
+/compact-ratio default    清除覆盖
 ```
 
-## 瀹炵幇
+## 实现
 
-瑁呴グ鍘嬬缉寮曟搸鐨?`compactIfNeeded`锛氳皟鐢ㄥ墠鎹㈠叆甯﹁鐩栫殑閰嶇疆鍓湰锛屽湪寮曟搸鐨勫悓姝ュ墠缂€缁撴潫鍚庤繕鍘熴€?娌℃湁瑕嗙洊銆佷笉鏄帇鍔涜Е鍙戙€佹垨寮曟搸涓嶅彲鐢ㄦ椂锛岀洿鎺ヨ皟鐢ㄥ師鏂规硶銆?
-鏍瑰眰鐨?`ctx.compaction` 鐩存帴瑁呴グ锛沺reset 闅旂鍑烘潵鐨勫紩鎿庡湪 `agent/pre-step` 閲岄€氳繃
-`agentPresets.serviceFor(agent, 'compaction')` 鍙栧緱锛屾寜瀹炰緥鍘婚噸锛屽垏 preset 涔熶笉浼氶噸澶嶅寘瑁呫€?
-## 宸茬煡琛屼负
+装饰压缩引擎的 `compactIfNeeded`：调用前换入带覆盖的配置副本，在引擎的同步前缀结束后还原。
+没有覆盖、不是压力触发、或引擎不可用时，直接调用原方法。
 
-- 鍙綔鐢ㄤ簬鍘嬪姏瑙﹀彂鐨勫帇缂╋紱涓婁笅鏂囨孩鍑哄悗鐨勬仮澶嶄笉淇濈暀灏鹃儴锛岃繖鏄悗绔涓恒€?- 淇濈暀閲?鈮?闃堝€兼椂鍚庣鎶?`retainTokens must be less than threshold`锛涙彃浠舵崟鑾峰悗鍥為€€鍒?  鎸夋瘮渚嬭绠楃殑榛樿灏鹃儴锛屽苟鍦?`compact-ratio.health.json` 璁颁竴鏉★紝鏃ュ織閲屼篃鏈変竴鏉?warn銆?- 妯″瀷绾?`modelPolicies` 閲屾樉寮忓啓鐨勪繚鐣欑瓥鐣ヤ紭鍏堜簬闈㈡澘璁剧疆銆?
-## 瀛樺偍
+根层的 `ctx.compaction` 直接装饰；preset 隔离出来的引擎在 `agent/pre-step` 里通过
+`agentPresets.serviceFor(agent, 'compaction')` 取得，按实例去重，切 preset 也不会重复包装。
 
-`~/.dsh/storages/compact-ratio.json`锛岀函鏈湴锛屼笉涓婁紶銆?
-## 寮€鍙?
-`index.js` + `client.js` 涓や釜鏂囦欢锛屾棤鏋勫缓銆佹棤杩愯鏃朵緷璧栥€傛敼瀹岄噸鍚涓伙紝
-娴忚鍣ㄥ崐渚у埛鏂伴〉闈㈠嵆鍙€?
-## 璁稿彲
+## 已知行为
 
-MIT銆?
+- 只作用于压力触发的压缩；上下文溢出后的恢复不保留尾部，这是后端行为。
+- 保留量 ≥ 阈值时后端抛 `retainTokens must be less than threshold`；插件捕获后回退到
+  按比例计算的默认尾部，并在 `compact-ratio.health.json` 记一条，日志里也有一条 warn。
+- 模型级 `modelPolicies` 里显式写的保留策略优先于面板设置。
+
+## 存储
+
+`~/.dsh/storages/compact-ratio.json`，纯本地，不上传。
+
+## 开发
+
+`index.js` + `client.js` 两个文件，无构建、无运行时依赖。改完重启宿主，
+浏览器半侧刷新页面即可。
+
+## 许可
+
+MIT。
